@@ -1,0 +1,13 @@
+
+<div class="flex" [class.justify-end]="sender() === 'user'" [class.justify-start]="sender() === 'ai'">
+    <div 
+        class="max-w-md lg:max-w-2xl px-4 py-3 rounded-2xl shadow"
+        [class.bg-orange-500]="sender() === 'user'"
+        [class.text-white]="sender() === 'user'"
+        [class.bg-white]="sender() === 'ai'"
+        [class.text-slate-800]="sender() === 'ai'"
+        [class.rounded-br-none]="sender() === 'user'"
+        [class.rounded-bl-none]="sender() === 'ai'">
+        <p class="text-sm">{{ message() }}</p>
+    </div>
+</div>
