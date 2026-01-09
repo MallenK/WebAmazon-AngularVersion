@@ -1,0 +1,87 @@
+
+<div class="container mx-auto flex-1 w-full">
+    <div class="flex flex-col md:flex-row">
+      <!-- Filters Sidebar -->
+      <aside class="w-full md:w-64 lg:w-72 p-4 md:p-6 flex-shrink-0">
+        <div class="sticky top-24 space-y-8">
+          <!-- Comparativas -->
+          <div>
+            <h2 class="text-xl font-bold mb-4">Comparativas</h2>
+            <div class="space-y-2 text-sm">
+              <a routerLink="/comparativas/cafeteras-de-capsulas" class="block text-slate-600 hover:text-orange-600 hover:font-semibold transition-all">› de Cápsulas</a>
+              <a routerLink="/comparativas/cafeteras-italianas" class="block text-slate-600 hover:text-orange-600 hover:font-semibold transition-all">› Italianas (Moka)</a>
+              <a routerLink="/comparativas/cafeteras-expreso" class="block text-slate-600 hover:text-orange-600 hover:font-semibold transition-all">› Exprés Automáticas</a>
+            </div>
+          </div>
+          
+          <!-- Filtros -->
+          <div>
+            <div class="flex justify-between items-center mb-4">
+               <h2 class="text-xl font-bold">Filtros</h2>
+               <button (click)="resetFilters()" class="text-xs text-orange-600 hover:underline">Limpiar</button>
+            </div>
+            <div class="space-y-6">
+              <div>
+                <label for="search" class="font-semibold text-sm mb-2 block">Buscar por nombre o marca</label>
+                <input id="search" type="text" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" placeholder="Ej: De'Longhi, Nespresso" class="w-full px-3 py-2 bg-slate-200/60 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
+              </div>
+              <div>
+                <label for="rating" class="font-semibold text-sm mb-2 block">Valoración mínima</label>
+                <select id="rating" [ngModel]="minRating()" (ngModelChange)="minRating.set(+$event)" class="w-full px-3 py-2 bg-slate-200/60 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                  <option value="0">Todas</option>
+                  <option value="4">4+ estrellas</option>
+                  <option value="3">3+ estrellas</option>
+                  <option value="2">2+ estrellas</option>
+                  <option value="1">1+ estrellas</option>
+                </select>
+              </div>
+              <div>
+                <div class="relative flex items-start">
+                  <div class="flex h-6 items-center">
+                    <input id="popular" aria-describedby="popular-description" name="popular" type="checkbox" [ngModel]="showPopular()" (ngModelChange)="showPopular.set($event)" class="h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+                  </div>
+                  <div class="ml-3 text-sm leading-6">
+                    <label for="popular" class="font-medium text-slate-900">Popular</label>
+                    <p id="popular-description" class="text-slate-500">Mostrar productos destacados</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="flex-1 p-4 md:p-6 border-t md:border-t-0 md:border-l border-slate-200 bg-white">
+        <section class="mb-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
+          <h2 class="text-xl font-bold text-slate-800 mb-2">Análisis y Comparativas de Cafeteras</h2>
+          <p class="text-sm text-slate-600">
+            En esta guía te ofrecemos análisis detallados y comparativas para ayudarte a elegir la cafetera perfecta.
+            Nuestro objetivo es darte la información más clara y útil. Ten en cuenta que los precios y la disponibilidad 
+            de los productos pueden variar; consulta siempre la página de Amazon para ver la información final y actualizada.
+          </p>
+        </section>
+
+        <p class="text-sm text-slate-500 mb-4">Mostrando <span class="font-bold text-slate-700">{{ filteredProducts().length }}</span> de <span class="font-bold text-slate-700">{{ allProducts().length }}</span> cafeteras.</p>
+        @if (allProducts().length === 0) {
+           <div class="text-center py-20 flex flex-col items-center">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-slate-300 mb-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5" /><path stroke-linecap="round" stroke-linejoin="round" d="M4 9a9 9 0 0114.65-4.65l-2.43 2.43a5 5 0 00-8.6 4.9" /><path stroke-linecap="round" stroke-linejoin="round" d="M20 15a9 9 0 01-14.65 4.65l2.43-2.43a5 5 0 008.6-4.9" /></svg>
+             <h3 class="text-2xl font-bold text-slate-700">Cargando productos...</h3>
+             <p class="text-slate-500 mt-2 max-w-sm">Contactando con el servidor para obtener el catálogo.</p>
+           </div>
+        } @else if (filteredProducts().length > 0) {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            @for (product of filteredProducts(); track product.id) {
+              <app-product-card [product]="product" />
+            }
+          </div>
+        } @else {
+          <div class="text-center py-20 flex flex-col items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <h3 class="text-2xl font-bold text-slate-700">No se encontraron cafeteras</h3>
+            <p class="text-slate-500 mt-2 max-w-sm">Prueba a cambiar o limpiar los filtros para ver más resultados.</p>
+            <button (click)="resetFilters()" class="mt-6 px-4 py-2 bg-orange-500 text-white rounded-md text-sm hover:bg-orange-600 transition-colors">Limpiar todos los filtros</button>
+          </div>
+        }
+      </main>
+    </div>
+</div>

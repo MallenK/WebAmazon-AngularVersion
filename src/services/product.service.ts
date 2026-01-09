@@ -36,7 +36,7 @@ export class ProductService {
         return of([]); // Return an empty array on error to prevent the app from crashing.
       })
     ).subscribe(activeProducts => {
-      console.log('Productos recibidos desde Supabase:', activeProducts.slice(0, 2));
+      console.log('Productos recibidos desde backend:', activeProducts.slice(0, 2));
       console.log('Total productos:', activeProducts.length);
       this.products.set(activeProducts);
     });
