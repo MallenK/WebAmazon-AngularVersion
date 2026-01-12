@@ -54,14 +54,36 @@ export class ProductsViewComponent {
     });
   });
 
+  // Pagination state
+  readonly itemsPerPage = 50;
+  readonly currentPage = signal(1);
+
+  readonly totalPages = computed(() => {
+    return Math.ceil(this.filteredProducts().length / this.itemsPerPage);
+  });
+
+  readonly paginatedProducts = computed(() => {
+    const products = this.filteredProducts();
+    const start = (this.currentPage() - 1) * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return products.slice(start, end);
+  });
+
   constructor() {
+    console.log(
+      "[UI] Paginación activa:",
+      {
+        itemsPerPage: 50,
+        controls: "top-and-bottom"
+      }
+    );
     console.log(
       "[UI] ASIN y URL ocultos en tarjetas de producto:",
       true
     );
     // Log for products rendered in the view (with compliance check)
     effect(() => {
-      const productsForView = this.filteredProducts();
+      const productsForView = this.paginatedProducts(); // Now logging paginated products
       console.log(
         "Productos renderizados en la vista:",
         productsForView.map(p => ({
@@ -71,11 +93,39 @@ export class ProductsViewComponent {
       );
       console.log("[COMPLIANCE] Vista libre de precios y métricas prohibidas:", true);
     });
+
+    // Effect to reset to page 1 when filters change
+    effect(() => {
+      this.filteredProducts(); // Depend on filtered products
+      this.currentPage.set(1);
+    }, { allowSignalWrites: true });
   }
   
   resetFilters(): void {
     this.searchTerm.set('');
     this.showPopular.set(false);
     this.minRating.set(0);
+  }
+
+  nextPage(): void {
+    if (this.currentPage() < this.totalPages()) {
+        this.currentPage.update(page => page + 1);
+        this.scrollToTop();
+    }
+  }
+
+  previousPage(): void {
+      if (this.currentPage() > 1) {
+          this.currentPage.update(page => page - 1);
+          this.scrollToTop();
+      }
+  }
+
+  private scrollToTop(): void {
+    // Scrolls to the top of the main content area for better UX on page change
+    const mainContent = document.querySelector('main');
+    if (mainContent) {
+      mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 }

@@ -18,6 +18,12 @@ export class AppComponent {
   readonly isChatVisible = signal(false);
 
   constructor() {
+    // Log for typography system
+    console.log(
+      "[UI] Sistema tipográfico actualizado (provisional):",
+      { headings: "Manrope", body: "Inter" }
+    );
+    
     // Initial compliance audit logs (UNCHANGED and preserved in the main shell)
     console.log("[COMPLIANCE] Disclaimer de afiliado visible:", true);
     console.log("[COMPLIANCE] Texto editorial presente:", true);
