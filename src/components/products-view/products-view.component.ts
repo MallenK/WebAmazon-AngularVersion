@@ -4,6 +4,7 @@ import { ProductService } from '../../services/product.service';
 import { ProductCardComponent } from '../product-card/product-card.component';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Product } from '../../models/product.model';
 
 // Helper function to safely parse numeric values from strings (e.g., "4,5")
 const parseNumeric = (value: string | null): number | null => {
@@ -69,6 +70,9 @@ export class ProductsViewComponent {
     return products.slice(start, end);
   });
 
+  // Quick View State
+  readonly quickViewProduct = signal<Product | null>(null);
+
   constructor() {
     console.log(
       "[UI] Paginación activa:",
@@ -119,6 +123,14 @@ export class ProductsViewComponent {
           this.currentPage.update(page => page - 1);
           this.scrollToTop();
       }
+  }
+  
+  handleQuickView(product: Product): void {
+    this.quickViewProduct.set(product);
+  }
+
+  closeQuickView(): void {
+    this.quickViewProduct.set(null);
   }
 
   private scrollToTop(): void {

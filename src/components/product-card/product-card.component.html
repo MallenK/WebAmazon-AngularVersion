@@ -6,9 +6,9 @@
         Destacado
       </div>
     }
-    <div class="relative bg-slate-50 h-48 w-full">
+    <div class="relative bg-slate-50 h-48 w-full group">
       @if (p.image_url) {
-        <img [src]="p.image_url" [alt]="p.name" class="w-full h-full object-contain p-4">
+        <img [src]="p.image_url" [alt]="p.name" class="w-full h-full object-contain p-4 transition-opacity duration-300 group-hover:opacity-20">
       } @else {
         <div class="w-full h-full flex items-center justify-center">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-slate-300" width="24" height="24" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -21,6 +21,12 @@
           </svg>
         </div>
       }
+      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button (click)="onQuickViewClick()" class="bg-white text-slate-800 font-bold py-2 px-4 rounded-full shadow-lg flex items-center gap-2 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              <span>Vista Rápida</span>
+          </button>
+      </div>
     </div>
     <div class="p-4 flex-grow flex flex-col">
       <a [routerLink]="['/producto', p.asin]" class="hover:text-orange-600 transition-colors">

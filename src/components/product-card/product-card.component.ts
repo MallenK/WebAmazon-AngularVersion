@@ -1,5 +1,5 @@
 
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Product } from '../../models/product.model';
 import { RouterLink } from '@angular/router';
 
@@ -12,4 +12,9 @@ import { RouterLink } from '@angular/router';
 })
 export class ProductCardComponent {
   product = input.required<Product>();
+  quickView = output<Product>();
+
+  onQuickViewClick(): void {
+    this.quickView.emit(this.product());
+  }
 }
