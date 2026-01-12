@@ -47,8 +47,24 @@ export default async function handler(req, res) {
       return res.end(JSON.stringify({ error: "Google AI error", data }));
     }
 
-    const text =
-      data?.candidates?.[0]?.content?.parts?.map(p => p.text).join("") ?? "";
+    const candidate = data?.candidates?.[0];
+
+    let text = "";
+
+    if (candidate?.content?.parts?.length) {
+      text = candidate.content.parts
+        .map(p => p.text)
+        .filter(Boolean)
+        .join("");
+    } else if (candidate?.content?.text) {
+      text = candidate.content.text;
+    } else if (data?.output_text) {
+      text = data.output_text;
+    }
+
+    if (!text) {
+      text = "(Respuesta vacía del modelo)";
+    }
 
     res.statusCode = 200;
     res.end(JSON.stringify({ text }));
