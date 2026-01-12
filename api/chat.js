@@ -29,9 +29,8 @@ export default async function handler(req, res) {
   }
 
   try {
-      const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-
+    const r = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -39,6 +38,7 @@ export default async function handler(req, res) {
           contents: [{ role: "user", parts: [{ text: message }] }],
         }),
       }
+
     );
 
     const data = await r.json();
