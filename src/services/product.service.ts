@@ -14,7 +14,8 @@ import { catchError, of } from 'rxjs';
 })
 export class ProductService {
   private readonly http = inject(HttpClient);
-  private readonly products = signal<Product[]>([]);
+  
+  private readonly apiProducts = signal<Product[]>([]);
 
   constructor() {
     this.loadProducts();
@@ -38,11 +39,11 @@ export class ProductService {
     ).subscribe(activeProducts => {
       console.log('Productos recibidos desde backend:', activeProducts.slice(0, 2));
       console.log('Total productos:', activeProducts.length);
-      this.products.set(activeProducts);
+      this.apiProducts.set(activeProducts);
     });
   }
 
   getProducts() {
-    return this.products.asReadonly();
+    return this.apiProducts;
   }
 }

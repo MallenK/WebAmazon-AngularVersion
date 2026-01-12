@@ -2,6 +2,7 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { ChatAssistantComponent } from './components/chat-assistant/chat-assistant.component';
+import { AddProductFormComponent } from './components/add-product-form/add-product-form.component';
 
 @Component({
   selector: 'app-root',
@@ -9,13 +10,15 @@ import { ChatAssistantComponent } from './components/chat-assistant/chat-assista
   imports: [
     RouterOutlet, 
     RouterLink,
-    ChatAssistantComponent
+    ChatAssistantComponent,
+    AddProductFormComponent
   ],
   templateUrl: './app.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
   readonly isChatVisible = signal(false);
+  readonly isAddProductFormVisible = signal(false);
 
   constructor() {
     // Log for typography system
@@ -42,5 +45,9 @@ export class AppComponent {
 
   toggleChat(): void {
     this.isChatVisible.update(v => !v);
+  }
+
+  toggleAddProductForm(): void {
+    this.isAddProductFormVisible.update(v => !v);
   }
 }
