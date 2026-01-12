@@ -21,9 +21,13 @@ export class AddProductFormComponent {
     Validators.required,
     Validators.pattern(/^(https?:\/\/)?(www\.)?(amazon\.es|amazon\.com)\/.+$/)
   ]);
+
+  readonly titleControl = new FormControl('', [Validators.required, Validators.maxLength(150)]);
   
   readonly productForm = new FormGroup({
-    url: this.productUrlControl
+    url: this.productUrlControl,
+    title: this.titleControl,
+    description: new FormControl('', [Validators.maxLength(300)])
   });
 
   readonly isSubmitting = signal(false);
@@ -34,9 +38,10 @@ export class AddProductFormComponent {
     }
     this.isSubmitting.set(true);
 
-    const url = this.productForm.value.url;
-    if (url) {
-      this.customProductService.addProduct(url);
+    const { url, title, description } = this.productForm.value;
+
+    if (url && title) {
+      this.customProductService.addProduct(url, title, description || null);
       this.productForm.reset();
     }
 

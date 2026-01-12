@@ -11,30 +11,49 @@
       </header>
       
       <main class="p-6 flex-shrink-0 border-b border-slate-200">
-        <p class="text-sm text-slate-600 mb-4">
-          Pega la URL de un producto de Amazon.es para añadirlo a tu lista personalizada. El tag de afiliado <code class="text-xs bg-slate-200 p-1 rounded">cafeteras_mallen-21</code> se añadirá automáticamente si no está presente.
-        </p>
-        <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
-          <div class="flex items-start gap-3">
-            <div class="flex-grow">
-              <label for="productUrl" class="sr-only">URL del Producto de Amazon</label>
-              <input 
-                id="productUrl" 
-                type="url"
-                formControlName="url"
-                placeholder="https://www.amazon.es/..." 
-                class="w-full px-3 py-2 bg-slate-100 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 font-body"
-                [class.border-red-500]="productUrlControl.invalid && productUrlControl.touched"
-              >
-              @if (productUrlControl.invalid && productUrlControl.touched) {
-                <p class="text-xs text-red-600 mt-1">Por favor, introduce una URL de Amazon válida.</p>
-              }
-            </div>
-            
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="space-y-4">
+          <div>
+            <label for="productUrl" class="text-sm font-medium text-slate-700 block mb-1">URL del Producto *</label>
+            <input 
+              id="productUrl" 
+              type="url"
+              formControlName="url"
+              placeholder="https://www.amazon.es/..." 
+              class="w-full px-3 py-2 bg-slate-100 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 font-body"
+              [class.border-red-500]="productUrlControl.invalid && productUrlControl.touched"
+            >
+            @if (productUrlControl.invalid && productUrlControl.touched) {
+              <p class="text-xs text-red-600 mt-1">Por favor, introduce una URL de Amazon válida.</p>
+            }
+          </div>
+          <div>
+            <label for="productTitle" class="text-sm font-medium text-slate-700 block mb-1">Título *</label>
+            <input 
+              id="productTitle" 
+              type="text"
+              formControlName="title"
+              placeholder="Ej: Cafetera Superautomática De'Longhi Magnifica S" 
+              class="w-full px-3 py-2 bg-slate-100 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 font-body"
+              [class.border-red-500]="titleControl.invalid && titleControl.touched"
+            >
+             @if (titleControl.invalid && titleControl.touched) {
+              <p class="text-xs text-red-600 mt-1">El título es obligatorio.</p>
+            }
+          </div>
+          <div>
+             <label for="productDescription" class="text-sm font-medium text-slate-700 block mb-1">Descripción corta (opcional)</label>
+             <textarea 
+                id="productDescription" 
+                formControlName="description"
+                rows="2"
+                placeholder="Un breve resumen del producto..."
+                class="w-full px-3 py-2 bg-slate-100 rounded-md border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 font-body"></textarea>
+          </div>
+          <div class="flex justify-end">
             <button 
               type="submit" 
               [disabled]="productForm.invalid || isSubmitting()"
-              class="px-4 py-2 text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-md transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center h-[42px]">
+              class="px-5 py-2 text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 rounded-md transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center h-[42px]">
               @if (isSubmitting()) {
                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -43,7 +62,7 @@
                 <span>Guardando...</span>
               } @else {
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <span>Añadir</span>
+                <span>Añadir Producto</span>
               }
             </button>
           </div>
@@ -55,12 +74,14 @@
         @if (manualProducts().length > 0) {
           <div class="space-y-3">
             @for (product of manualProducts(); track product.id) {
-              <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-center justify-between gap-4">
+              <div class="bg-white p-3 rounded-lg shadow-sm border border-slate-200 flex items-start justify-between gap-4">
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-semibold text-slate-800 truncate" title="{{product.name}}">{{ product.name }}</p>
-                  <p class="text-xs text-slate-500 truncate">ASIN: {{ product.asin || 'N/A' }}</p>
+                  <p class="text-sm font-semibold text-slate-800" title="{{product.name}}">{{ product.name }}</p>
+                  @if (product.title) {
+                    <p class="text-xs text-slate-500 mt-1">{{ product.title }}</p>
+                  }
                 </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
+                <div class="flex items-center gap-2 flex-shrink-0 mt-0.5">
                   <a [href]="product.amazon_url" target="_blank" rel="noopener sponsored" class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors inline-flex items-center gap-1.5">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                     Vista Previa

@@ -8,6 +8,8 @@ import { catchError, tap, of } from 'rxjs';
 interface ManualProductResponse {
   id: string;
   url: string;
+  title: string;
+  description: string | null;
   created_at: string;
   is_active: boolean;
 }
@@ -37,22 +39,26 @@ export class CustomProductService {
   loadManualProducts(): void {
     const stored = localStorage.getItem(this.storageKey);
     const products: ManualProductResponse[] = stored ? JSON.parse(stored) : [];
-    const activeProducts = products.filter(p => p.is_active !== false); // Treat undefined as true for backward compatibility
-    this.manualProducts.set(activeProducts.map((p) => this.transformToProduct(p)));
+    const activeProducts = products.filter(p => p.is_active !== false); // Treat undefined as true
+    // Reverse to simulate ORDER BY created_at DESC
+    this.manualProducts.set(activeProducts.reverse().map((p) => this.transformToProduct(p)));
   }
 
-  addProduct(url: string): void {
-    const asin = this.extractAsinFromUrl(url);
+  addProduct(url: string, title: string, description: string | null): void {
+    // First, ensure the URL is valid, has a protocol, and includes the affiliate tag.
+    const finalUrl = this.ensureAffiliateTag(url);
+    
+    const asin = this.extractAsinFromUrl(finalUrl);
     if (!asin) {
-      console.error('Could not extract ASIN from URL:', url);
+      console.error('Could not extract ASIN from the corrected URL:', finalUrl);
       return;
     }
-    
-    const finalUrl = this.ensureAffiliateTag(url);
 
     const pseudoResponse: ManualProductResponse = {
         id: `manual-${asin}-${Date.now()}`,
         url: finalUrl,
+        title: title,
+        description: description,
         created_at: new Date().toISOString(),
         is_active: true
     };
@@ -98,8 +104,13 @@ export class CustomProductService {
   }
 
   private ensureAffiliateTag(url: string): string {
+    let correctedUrl = url.trim();
+    if (!/^https?:\/\//i.test(correctedUrl)) {
+      correctedUrl = `https://${correctedUrl}`;
+    }
+
     try {
-      const urlObj = new URL(url);
+      const urlObj = new URL(correctedUrl);
       if (urlObj.searchParams.get('tag') !== this.affiliateTag) {
         urlObj.searchParams.set('tag', this.affiliateTag);
       }
@@ -114,8 +125,8 @@ export class CustomProductService {
     const asin = this.extractAsinFromUrl(response.url);
     return {
       id: response.id,
-      name: `Producto Manual (${asin || 'N/A'})`,
-      title: `Producto añadido manualmente`,
+      name: response.title, // Use DB title as the main name
+      title: response.description, // Use DB description as the secondary title/subtitle
       asin: asin,
       image_url: null, // Manual products have no image scraping
       amazon_url: response.url,
