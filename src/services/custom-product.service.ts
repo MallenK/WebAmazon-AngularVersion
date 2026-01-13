@@ -80,6 +80,31 @@ export class CustomProductService {
     ).subscribe();
   }
 
+  updateProductUrl(productId: string, newUrl: string): void {
+    const finalUrl = this.ensureAffiliateTag(newUrl);
+
+    // This PATCH call is simulated. It would update the url in the DB.
+    const update$ = of(null).pipe(tap(() => {
+        const stored = localStorage.getItem(this.storageKey);
+        let products: ManualProductResponse[] = stored ? JSON.parse(stored) : [];
+        products = products.map(p => {
+          if (p.id === productId) {
+            return { ...p, url: finalUrl };
+          }
+          return p;
+        });
+        localStorage.setItem(this.storageKey, JSON.stringify(products));
+    }));
+
+    update$.pipe(
+      tap(() => this.loadManualProducts()),
+      catchError(err => {
+        console.error('Error updating manual product URL', err);
+        return of(null);
+      })
+    ).subscribe();
+  }
+
   deleteProduct(productId: string): void {
     // This PATCH call is simulated. It would set is_active = false in the DB.
     const delete$ = of(null).pipe(tap(() => {

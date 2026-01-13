@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, output, inject, signal } from '@ang
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CustomProductService } from '../../services/custom-product.service';
 import { ProductCardComponent } from '../product-card/product-card.component';
+import { Product } from '../../models/product.model';
 
 @Component({
   selector: 'app-add-product-form',
@@ -32,6 +33,13 @@ export class AddProductFormComponent {
 
   readonly isSubmitting = signal(false);
 
+  // Edit state
+  readonly editingProductId = signal<string | null>(null);
+  readonly editUrlControl = new FormControl('', [
+    Validators.required,
+    Validators.pattern(/^(https?:\/\/)?(www\.)?(amazon\.es|amazon\.com)\/.+$/)
+  ]);
+
   onSubmit(): void {
     if (this.productForm.invalid || this.isSubmitting()) {
       return;
@@ -55,5 +63,23 @@ export class AddProductFormComponent {
     if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
       this.customProductService.deleteProduct(id);
     }
+  }
+
+  startEdit(product: Product): void {
+    this.editingProductId.set(product.id);
+    this.editUrlControl.setValue(product.amazon_url);
+  }
+
+  cancelEdit(): void {
+    this.editingProductId.set(null);
+    this.editUrlControl.reset();
+  }
+
+  saveEdit(productId: string): void {
+    if (this.editUrlControl.invalid || !this.editUrlControl.value) {
+      return;
+    }
+    this.customProductService.updateProductUrl(productId, this.editUrlControl.value);
+    this.cancelEdit();
   }
 }
