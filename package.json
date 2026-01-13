@@ -25,6 +25,10 @@
     "@types/node": "^22.14.0",
     "typescript": "5.9.3",
     "tailwindcss": "latest"
+  },
+    "engines": {
+    "node": ">=20.11.0"
   }
+
 
 }
