@@ -26,6 +26,11 @@ const editorialMap: Record<string, EditorialContent> = {
     title: 'Análisis de Cafeteras Exprés Automáticas',
     intro: 'Las cafeteras exprés automáticas (o superautomáticas) representan la vanguardia de la tecnología del café en el hogar. Estas máquinas lo hacen todo: muelen el grano al instante, dosifican la cantidad perfecta, prensan el café y extraen un espresso de alta calidad con solo pulsar un botón. Ofrecen una experiencia "bean-to-cup" (del grano a la taza) que garantiza la máxima frescura y sabor.\n\nSu principal ventaja es la personalización. Permiten ajustar la intensidad del café, el grado de molienda, la temperatura y la cantidad de agua, guardando a menudo estas preferencias en perfiles de usuario. Muchos modelos incluyen también vaporizadores automáticos para crear cappuccinos y lattes con una espuma perfecta, replicando la experiencia de una cafetería profesional en casa.',
     profile: 'Ideal para los entusiastas del café que desean la máxima calidad y frescura sin complicaciones. Si quieres disfrutar de un espresso perfecto y personalizado cada día, experimentar con diferentes granos de café y tener la comodidad de una máquina que se limpia sola, una cafetera exprés automática es la inversión definitiva.'
+  },
+  'cafeteras-de-goteo': {
+    title: 'Análisis de Cafeteras de Goteo',
+    intro: 'Las cafeteras de goteo, también conocidas como americanas o de filtro, son la opción clásica para preparar grandes cantidades de café de forma sencilla. Funcionan calentando agua y haciéndola pasar lentamente a través de un filtro con café molido, lo que resulta en una bebida suave, aromática y menos concentrada que un espresso.\n\nSon extremadamente fáciles de usar: solo tienes que añadir agua y café, y pulsar un botón. Muchos modelos incluyen jarras térmicas que mantienen el café caliente durante horas y funciones programables para que te despiertes con el café recién hecho. Son perfectas para oficinas, reuniones o para quienes beben varias tazas a lo largo de la mañana.',
+    profile: 'Es la elección ideal para hogares u oficinas donde se consume mucho café. Si te gusta un café más suave y aromático y valoras la capacidad de preparar varias tazas a la vez de manera automática, la cafetera de goteo es la solución más práctica y económica.'
   }
 };
 
@@ -97,6 +102,8 @@ export class ComparativaComponent {
         return allProducts.filter(p => /italiana|moka/i.test(p.name));
       case 'cafeteras-expreso':
         return allProducts.filter(p => /automática|superautomática|espresso/i.test(p.name) && !/cápsulas/i.test(p.name));
+      case 'cafeteras-de-goteo':
+        return allProducts.filter(p => /goteo|filtro/i.test(p.name));
       default:
         return [];
     }

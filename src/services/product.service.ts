@@ -21,7 +21,7 @@ export class ProductService {
     this.loadProducts();
   }
 
-  private loadProducts(): void {
+  public loadProducts(): void {
     const supabaseUrl = 'https://keewdanzvhxplokkgnhq.supabase.co/functions/v1/bright-task';
     const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlZXdkYW56dmh4cGxva2tnbmhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjQyNDUsImV4cCI6MjA4MzQ0MDI0NX0.Nx5qVmCilV0rVSm8sVS5_MfmT6tPdLY26jE6EPXIi94';
     

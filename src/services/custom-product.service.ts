@@ -1,31 +1,25 @@
 
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Product } from '../models/product.model';
-import { catchError, tap, of } from 'rxjs';
-
-// Represents the data structure from the new 'products_manual' table
-interface ManualProductResponse {
-  id: string;
-  url: string;
-  title: string;
-  description: string | null;
-  created_at: string;
-  is_active: boolean;
-}
+import { ManualProduct } from '../models/manual-product.model';
+import { catchError, tap, of, Observable, map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CustomProductService {
   private readonly http = inject(HttpClient);
-  private readonly manualProducts = signal<Product[]>([]);
-  private readonly storageKey = 'products_manual_fallback';
+  private readonly manualProducts = signal<ManualProduct[]>([]);
   
-  // NOTE: This is a hypothetical endpoint for the new 'products_manual' table.
-  private readonly supabaseUrl = 'https://keewdanzvhxplokkgnhq.supabase.co/functions/v1/products-manual';
+  private readonly supabaseRestUrl = 'https://keewdanzvhxplokkgnhq.supabase.co/rest/v1/products_manual';
   private readonly anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlZXdkYW56dmh4cGxva2tnbmhxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4NjQyNDUsImV4cCI6MjA4MzQ0MDI0NX0.Nx5qVmCilV0rVSm8sVS5_MfmT6tPdLY26jE6EPXIi94';
-  private readonly headers = new HttpHeaders({ 'Authorization': `Bearer ${this.anonKey}` });
+  
+  private readonly headers = new HttpHeaders({ 
+    'apikey': this.anonKey,
+    'Authorization': `Bearer ${this.anonKey}`,
+    'Content-Type': 'application/json'
+  });
+
   private readonly affiliateTag = 'cafeteras_mallen-21';
 
   constructor() {
@@ -37,95 +31,93 @@ export class CustomProductService {
   }
 
   loadManualProducts(): void {
-    const stored = localStorage.getItem(this.storageKey);
-    const products: ManualProductResponse[] = stored ? JSON.parse(stored) : [];
-    const activeProducts = products.filter(p => p.is_active !== false); // Treat undefined as true
-    // Reverse to simulate ORDER BY created_at DESC
-    this.manualProducts.set(activeProducts.reverse().map((p) => this.transformToProduct(p)));
+    const params = {
+      is_active: 'eq.true', // Only fetch active products
+      order: 'created_at.desc'
+    };
+
+    this.http.get<ManualProduct[]>(this.supabaseRestUrl, { headers: this.headers, params }).pipe(
+      catchError(err => {
+        console.error('Error loading manual products from Supabase', err);
+        return of([]);
+      })
+    ).subscribe(products => {
+      this.manualProducts.set(products);
+    });
   }
 
   addProduct(url: string, title: string, description: string | null): void {
-    // First, ensure the URL is valid, has a protocol, and includes the affiliate tag.
     const finalUrl = this.ensureAffiliateTag(url);
-    
-    const asin = this.extractAsinFromUrl(finalUrl);
-    if (!asin) {
-      console.error('Could not extract ASIN from the corrected URL:', finalUrl);
-      return;
-    }
 
-    const pseudoResponse: ManualProductResponse = {
-        id: `manual-${asin}-${Date.now()}`,
-        url: finalUrl,
-        title: title,
-        description: description,
-        created_at: new Date().toISOString(),
-        is_active: true
+    const newProductData = {
+      url: finalUrl,
+      title: title,
+      description: description,
     };
+
+    const postHeaders = this.headers.append('Prefer', 'return=representation');
+
+    this.http.post<ManualProduct[]>(this.supabaseRestUrl, newProductData, { headers: postHeaders }).pipe(
+      tap(() => {
+        this.loadManualProducts();
+      }),
+      catchError(err => {
+        console.error('Error adding manual product to Supabase', err);
+        return of(null);
+      })
+    ).subscribe();
+  }
+
+  updateProduct(productId: string, data: { title: string; description: string | null; url: string; }): void {
+    const finalUrl = this.ensureAffiliateTag(data.url);
+    const updateData = {
+      url: finalUrl,
+      title: data.title,
+      description: data.description,
+    };
+
+    const params = { id: `eq.${productId}` };
     
-    // This POST call is simulated. In a real scenario, it would save to the DB.
-    const add$ = of(pseudoResponse).pipe(tap(() => {
-        const stored = localStorage.getItem(this.storageKey);
-        const products = stored ? JSON.parse(stored) : [];
-        products.push(pseudoResponse);
-        localStorage.setItem(this.storageKey, JSON.stringify(products));
-    }));
-
-    add$.pipe(
-      tap(() => this.loadManualProducts()),
+    this.http.patch(this.supabaseRestUrl, updateData, { headers: this.headers, params }).pipe(
+      tap(() => {
+        this.loadManualProducts();
+      }),
       catchError(err => {
-        console.error('Error adding manual product', err);
+        console.error('Error updating manual product in Supabase', err);
         return of(null);
       })
     ).subscribe();
   }
 
-  updateProductUrl(productId: string, newUrl: string): void {
-    const finalUrl = this.ensureAffiliateTag(newUrl);
+  deleteManualProduct(id: string): Observable<boolean> {
+    console.log('[DEACTIVATE][SERVICE] id recibido para desactivar', id);
+    const params = { id: `eq.${id}` };
+    const updateData = { is_active: false };
+    const patchHeaders = this.headers.append('Prefer', 'count=exact');
 
-    // This PATCH call is simulated. It would update the url in the DB.
-    const update$ = of(null).pipe(tap(() => {
-        const stored = localStorage.getItem(this.storageKey);
-        let products: ManualProductResponse[] = stored ? JSON.parse(stored) : [];
-        products = products.map(p => {
-          if (p.id === productId) {
-            return { ...p, url: finalUrl };
-          }
-          return p;
-        });
-        localStorage.setItem(this.storageKey, JSON.stringify(products));
-    }));
+    return this.http.patch(this.supabaseRestUrl, updateData, { headers: patchHeaders, params, observe: 'response' }).pipe(
+      map(response => {
+        const contentRange = response.headers.get('content-range');
+        const count = contentRange ? parseInt(contentRange.split('/')[1], 10) : 0;
+        
+        console.log('[DEACTIVATE][SERVICE] resultado Supabase', { data: response.body, error: null, count });
 
-    update$.pipe(
-      tap(() => this.loadManualProducts()),
-      catchError(err => {
-        console.error('Error updating manual product URL', err);
-        return of(null);
+        if (count === 1) {
+          // If successful, remove from the local list of active products.
+          this.manualProducts.update(currentProducts => 
+            currentProducts.filter(p => p.id !== id)
+          );
+          return true;
+        }
+        
+        console.error('[DEACTIVATE][SERVICE] ERROR: Se esperaba desactivar 1 fila, pero el recuento es', count);
+        return false;
+      }),
+      catchError(error => {
+        console.error('[DEACTIVATE][SERVICE] resultado Supabase', { data: null, error: error, count: 0 });
+        return of(false);
       })
-    ).subscribe();
-  }
-
-  deleteProduct(productId: string): void {
-    // This PATCH call is simulated. It would set is_active = false in the DB.
-    const delete$ = of(null).pipe(tap(() => {
-        const stored = localStorage.getItem(this.storageKey);
-        let products: ManualProductResponse[] = stored ? JSON.parse(stored) : [];
-        products = products.map(p => {
-          if (p.id === productId) {
-            return { ...p, is_active: false };
-          }
-          return p;
-        });
-        localStorage.setItem(this.storageKey, JSON.stringify(products));
-    }));
-
-    delete$.pipe(
-      tap(() => this.loadManualProducts()),
-      catchError(err => {
-        console.error('Error deleting manual product', err);
-        return of(null);
-      })
-    ).subscribe();
+    );
   }
 
   private ensureAffiliateTag(url: string): string {
@@ -144,31 +136,5 @@ export class CustomProductService {
       console.error("Invalid URL provided:", url);
       return url; // Return original url if parsing fails
     }
-  }
-
-  private transformToProduct(response: ManualProductResponse): Product {
-    const asin = this.extractAsinFromUrl(response.url);
-    return {
-      id: response.id,
-      name: response.title, // Use DB title as the main name
-      title: response.description, // Use DB description as the secondary title/subtitle
-      asin: asin,
-      image_url: null, // Manual products have no image scraping
-      amazon_url: response.url,
-      price: null,
-      old_price: null,
-      rating_num: null,
-      rating_text: null,
-      reviews_count: null,
-      bought_last_month: null,
-      is_sponsored: true, // Mark as special
-      is_active: response.is_active,
-    };
-  }
-
-  private extractAsinFromUrl(url: string): string | null {
-    const asinRegex = /\/(?:dp|gp\/product)\/([A-Z0-9]{10})/;
-    const match = url.match(asinRegex);
-    return match ? match[1] : null;
   }
 }

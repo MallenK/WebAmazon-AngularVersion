@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, output, inject, signal } from '@ang
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CustomProductService } from '../../services/custom-product.service';
 import { ProductCardComponent } from '../product-card/product-card.component';
-import { Product } from '../../models/product.model';
+import { ManualProduct } from '../../models/manual-product.model';
 
 @Component({
   selector: 'app-add-product-form',
@@ -22,9 +22,7 @@ export class AddProductFormComponent {
     Validators.required,
     Validators.pattern(/^(https?:\/\/)?(www\.)?(amazon\.es|amazon\.com)\/.+$/)
   ]);
-
   readonly titleControl = new FormControl('', [Validators.required, Validators.maxLength(150)]);
-  
   readonly productForm = new FormGroup({
     url: this.productUrlControl,
     title: this.titleControl,
@@ -35,10 +33,14 @@ export class AddProductFormComponent {
 
   // Edit state
   readonly editingProductId = signal<string | null>(null);
-  readonly editUrlControl = new FormControl('', [
-    Validators.required,
-    Validators.pattern(/^(https?:\/\/)?(www\.)?(amazon\.es|amazon\.com)\/.+$/)
-  ]);
+  readonly editForm = new FormGroup({
+    url: new FormControl('', [
+      Validators.required,
+      Validators.pattern(/^(https?:\/\/)?(www\.)?(amazon\.es|amazon\.com)\/.+$/)
+    ]),
+    title: new FormControl('', [Validators.required, Validators.maxLength(150)]),
+    description: new FormControl('', [Validators.maxLength(300)])
+  });
 
   onSubmit(): void {
     if (this.productForm.invalid || this.isSubmitting()) {
@@ -59,27 +61,51 @@ export class AddProductFormComponent {
     }, 500);
   }
 
-  deleteProduct(id: string): void {
-    if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-      this.customProductService.deleteProduct(id);
+  onDeleteManual(id: string, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (!id) {
+      console.error("[DEACTIVATE][UI] Error: Se intentó desactivar un producto sin ID.");
+      return;
+    }
+
+    if (confirm('¿Estás seguro de que quieres eliminar este producto? La acción no se puede deshacer.')) {
+      console.log('[DEACTIVATE][UI] solicitando desactivación', id);
+      this.customProductService.deleteManualProduct(id).subscribe(success => {
+        if (success) {
+          console.log('[DEACTIVATE][UI] producto desactivado correctamente', id);
+        } else {
+          console.error('[DEACTIVATE][UI] Fallo al desactivar el producto en el backend.', { id });
+          alert('No se pudo eliminar el producto. Revise la consola para más detalles.');
+        }
+      });
     }
   }
 
-  startEdit(product: Product): void {
+  startEdit(product: ManualProduct): void {
     this.editingProductId.set(product.id);
-    this.editUrlControl.setValue(product.amazon_url);
+    this.editForm.setValue({
+      url: product.url,
+      title: product.title || '',
+      description: product.description || ''
+    });
   }
 
   cancelEdit(): void {
     this.editingProductId.set(null);
-    this.editUrlControl.reset();
+    this.editForm.reset();
   }
 
   saveEdit(productId: string): void {
-    if (this.editUrlControl.invalid || !this.editUrlControl.value) {
+    if (this.editForm.invalid) {
       return;
     }
-    this.customProductService.updateProductUrl(productId, this.editUrlControl.value);
+    const { url, title, description } = this.editForm.value;
+
+    if (url && title) {
+      this.customProductService.updateProduct(productId, { url, title, description: description || null });
+    }
     this.cancelEdit();
   }
 }
