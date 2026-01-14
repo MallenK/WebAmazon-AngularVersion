@@ -56,7 +56,7 @@ export class ProductsViewComponent {
   });
 
   // Pagination state
-  readonly itemsPerPage = 50;
+  readonly itemsPerPage = 10;
   readonly currentPage = signal(1);
 
   readonly totalPages = computed(() => {
@@ -73,11 +73,14 @@ export class ProductsViewComponent {
   // Quick View State
   readonly quickViewProduct = signal<Product | null>(null);
 
+  // Mobile filter visibility
+  readonly areFiltersVisibleMobile = signal(false);
+
   constructor() {
     console.log(
       "[UI] Paginación activa:",
       {
-        itemsPerPage: 50,
+        itemsPerPage: 10,
         controls: "top-and-bottom"
       }
     );
@@ -131,6 +134,10 @@ export class ProductsViewComponent {
 
   closeQuickView(): void {
     this.quickViewProduct.set(null);
+  }
+
+  toggleFiltersMobile(): void {
+    this.areFiltersVisibleMobile.update(v => !v);
   }
 
   private scrollToTop(): void {

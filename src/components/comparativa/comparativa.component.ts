@@ -43,25 +43,34 @@ const editorialMap: Record<string, EditorialContent> = {
       @if (content(); as c) {
         <a routerLink="/" class="text-sm text-orange-600 hover:underline mb-6 inline-block">‹ Volver al catálogo</a>
         <h1 class="text-3xl font-bold text-slate-800 mb-4">{{ c.title }}</h1>
-        <div class="prose prose-slate max-w-none space-y-4 text-slate-600 mb-8">
+        
+        <!-- Breve Introducción -->
+        <div class="prose prose-slate max-w-none text-slate-600 mb-8">
           <p>{{ c.intro.split('\\n\\n')[0] }}</p>
-          <p>{{ c.intro.split('\\n\\n')[1] }}</p>
-          <div class="p-4 bg-slate-50 border-l-4 border-orange-500 rounded-r-lg">
-            <h3 class="font-semibold text-slate-800">¿Para quién es ideal?</h3>
-            <p class="!mt-2">{{ c.profile }}</p>
-          </div>
         </div>
 
+        <!-- Modelos Recomendados -->
         <h2 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-2">Modelos Recomendados</h2>
         @if (products().length > 0) {
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-10">
             @for (product of products(); track product.id) {
               <app-product-card [product]="product" />
             }
           </div>
         } @else {
-          <p class="text-slate-500">No se encontraron productos para esta categoría en este momento.</p>
+          <p class="text-slate-500 mb-10">No se encontraron productos para esta categoría en este momento.</p>
         }
+
+        <!-- Contenido Adicional y Perfil de Usuario -->
+        <div class="prose prose-slate max-w-none space-y-4 text-slate-600 mt-10 pt-8 border-t border-slate-200/80">
+          <h3 class="!text-xl !font-bold !text-slate-800">Ventajas y Características Principales</h3>
+          <p>{{ c.intro.split('\\n\\n')[1] }}</p>
+          <div class="p-4 bg-slate-50 border-l-4 border-orange-500 rounded-r-lg">
+            <h3 class="font-semibold text-slate-800">¿Para quién es ideal este tipo de cafetera?</h3>
+            <p class="!mt-2">{{ c.profile }}</p>
+          </div>
+        </div>
+
       } @else {
         <h1 class="text-3xl font-bold">Página no encontrada</h1>
         <p class="text-slate-500 mt-4">La comparativa que buscas no existe.</p>
